@@ -2,6 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import NetInfo from '@react-native-community/netinfo';
 import { createAsyncStoragePersister } from '@tanstack/query-async-storage-persister';
 import { onlineManager, QueryClient } from '@tanstack/react-query';
+import { Platform } from 'react-native';
 
 const DAY = 24 * 60 * 60 * 1000;
 
@@ -23,9 +24,13 @@ export const queryPersister = createAsyncStoragePersister({
 
 export const PERSIST_MAX_AGE = 7 * DAY;
 
-// Pause queries while offline and resume them when the connection comes back.
-onlineManager.setEventListener((setOnline) =>
-  NetInfo.addEventListener((state) => {
-    setOnline(state.isConnected !== false);
-  }),
-);
+// On iOS and Android, pause queries while offline and resume when the connection returns.
+// Browsers already report online/offline events, which TanStack Query uses by default; using
+// NetInfo there would hold every request until its reachability check finished.
+if (Platform.OS !== 'web') {
+  onlineManager.setEventListener((setOnline) =>
+    NetInfo.addEventListener((state) => {
+      setOnline(state.isConnected !== false);
+    }),
+  );
+}
