@@ -108,7 +108,12 @@ export function CurrencyDetail({ code }: { code: string }) {
         ) : history.data ? (
           <StateMessage title="Not enough data for this period" />
         ) : (
-          <StateMessage loading title="Loading history…" />
+          <StateMessage
+            loading
+            title="Loading history…"
+            // The free rates service can take a while the first time a date range is requested.
+            message={history.failureCount > 0 ? 'The rates service is slow to respond. Still trying…' : undefined}
+          />
         )}
       </View>
 
